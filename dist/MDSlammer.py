@@ -5,6 +5,7 @@ import sys
 import os
 import getpass
 import time
+import base64
 
 # Backwards compatibility
 getin = raw_input if sys.version_info < (3, 0) else input
@@ -15,6 +16,11 @@ def main():
         print("Welcome to MDSlammer - a checksum verifier built in Python.") # Friendly welcome message
         print("(C) Nytelife26 [Tyler J Russell] 2017-present") 
         fp = getin("What file would you like to validate? ") # Asking what file they would like to validate
+        fn = fp.split("\\") # Turning fp into a list that uses "\\" as the point of split under a variable called fn.
+        temp_fname = fn[len(fn) - 1] # Getting the last object in fn and setting that as temp_fname. This allows us to get the name of the file alone if the user has entered a directory to prevent runtime errors later on.
+        fnom = temp_fname.split("/") # Just incase they used something like "../something.something" instead of something like "C:\SomeDir\Anything.anything", we use "/" as a splitting point too.
+        fname = fnom[len(fnom) - 1] # Getting the real, real last object now
+        fbase = hash(fname) # Getting a hashed version of the filename.
         check_md5 = getin("What is the MD5 validation hash you have been given? Leave blank for none: ").split() # Getting the MD5 hash
         check_md5 = ''.join(check_md5) # Eliminating the possibility of spaces messing up validation
         check_sha256 = getin("What is the SHA256 validation hash you have been given? Leave blank for none: ").split() # Getting the SHA256 hash
@@ -56,10 +62,10 @@ def main():
             
         # Results page
         timestamp = time.strftime("%Y-%m-%d %H:%M:%S") # Getting the current time so we can log that too, since timestamp is always useful information
-        logfile = str("{}.log".format(fp)) # Setting the name of the file to log the results to.
+        logfile = str("{}.log".format(fbase)) # Setting the name of the file to log the results to.
         print("------------------------------RESULTS------------------------------")
         print("Info:") # Basic information
-        print("Filename - {}".format(fp)) # Name of the file that was checked
+        print("Filename - {}".format(fname)) # Name of the file that was checked
         print("Time of check - {}".format(timestamp)) # Timestamp of the check
         print("-------------------------------------------------------------------")
         print("MD5:") # MD5 results 
@@ -79,7 +85,7 @@ def main():
             
         with io.open("{}\\logs\\{}".format(os.getcwd(), logfile), 'w+') as outfile: # Opening the log file and creating it if it does not exist
             # Writing the log file. The log file will not be all on one line like it is in the code since we are using \n [line breaks]
-            outfile.write("------------------------------RESULTS------------------------------\nInfo:\nFilename - {}\nTime of check - {}\n-------------------------------------------------------------------\nMD5:\nMD5 to check - {}\nActual MD5 checksum - {}\nMD5 status - {}\n-------------------------------------------------------------------\nSHA256:\nSHA256 to check - {}\nActual SHA256 checksum - {}\nSHA256 status - {}\n-------------------------------------------------------------------".format(fp, timestamp, check_md5, md5_returned, md5_status, check_sha256, sha_returned, sha_status)) 
+            outfile.write("------------------------------RESULTS------------------------------\nInfo:\nFilename - {}\nTime of check - {}\n-------------------------------------------------------------------\nMD5:\nMD5 to check - {}\nActual MD5 checksum - {}\nMD5 status - {}\n-------------------------------------------------------------------\nSHA256:\nSHA256 to check - {}\nActual SHA256 checksum - {}\nSHA256 status - {}\n-------------------------------------------------------------------".format(fname, timestamp, check_md5, md5_returned, md5_status, check_sha256, sha_returned, sha_status)) 
             
         print("These results have been outputted to '{}\\logs\\{}' for future reference.".format(os.getcwd(), logfile)) # Confirming that we wrote the log file and telling them which file it is
         
